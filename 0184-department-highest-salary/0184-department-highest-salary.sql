@@ -1,4 +1,19 @@
-# Write your MySQL query statement below
-SELECT Department.Name AS Department, e1.Name AS Employee, e1.Salary AS Salary
-FROM Department JOIN Employee e1 ON Department.Id = e1.DepartmentId
-WHERE e1.Salary = (SELECT Max(Salary) FROM Employee e2 WHERE e2.DepartmentId = e1.DepartmentId)
+WITH
+  EmployeesWithMaxSalaryInDepartment AS (
+    SELECT
+      Department.name AS department,
+      Employee.name AS employee,
+      Employee.salary,
+      MAX(Employee.salary) OVER(
+        PARTITION BY Employee.departmentId
+      ) AS max_salary
+    FROM Employee
+    LEFT JOIN Department
+      ON (Employee.departmentId = Department.id)
+  )
+SELECT
+  department AS Department,
+  employee AS Employee,
+  salary AS Salary
+FROM EmployeesWithMaxSalaryInDepartment
+WHERE salary = max_salary;
